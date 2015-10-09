@@ -16,7 +16,8 @@
  *    You should have received a copy of the GNU General Public License
  *    along with RoboComp.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "specificworker.h"
+#include "specificworker.h" 
+
 
 /**
 * \brief Default constructor
@@ -47,8 +48,43 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 
 void SpecificWorker::compute()
 {
-const float threshold = 450;
-    float rot = 1.5707; 
+
+	ldata = laser_proxy->getLaserData();
+	
+	switch(state)
+	{
+		case State::INIT:
+			//cambiar cuando se pulse el botón desde la UI
+			break;
+		
+		case State::ADVANCE:
+			search();
+			break;
+		
+		case State::ADVANCE:
+			navegar();
+			break;
+		
+		
+	}
+	
+	
+}
+
+
+void SpecificWorker::search()
+{
+			girar hasta tList.exists( currentTag );
+			state = State::ADVANCE;
+	
+}
+
+
+
+void navegar()
+{
+	const float threshold = 400;
+    float rot = 1.5707,rot1; 
 
 
 
@@ -61,20 +97,34 @@ const float threshold = 450;
 
      if( ldata[35].dist < (sqrt(pow(threshold,2)+pow(threshold,2))))
     {
+		/*
 		int i=rand()%2;
-		float rot1=rot;
+		rot1=rot;
 		if(i==0)
+			rot1=rot*(-1);*/
+		if(ldata.front().dist<=ldata[99].dist){
 			rot1=rot*(-1);
+			std::cout << "Izquierda" << std::endl; 
+			
+		}
+		else{
+			
+			rot1=rot;
+			std::cout << "Derecha" << std::endl;
+		}
     differentialrobot_proxy->setSpeedBase(5, rot1);
     usleep(1250000);
     std::cout << ldata.front().dist << std::endl;   
     differentialrobot_proxy->setSpeedBase(200, 0);
     usleep(500000);
+
     rot = rot + 0.12;
     if( rot > 3 * 1.5707 )
     {
      rot = 1.5707;
     }
+    
+    // tagList.get( id);
     }
 
     else
@@ -91,10 +141,19 @@ const float threshold = 450;
         std::cout << ex << std::endl;
     }
 }
+////////////////////////////
+////  ICE
+/////////////////////////////
 
 
-
-
-
-
+void SpecificWorker::newAprilTag(const tagsList& tags)
+{
+	for(auto t :tags)
+	{
+		qDebug()<<t.id;
+		tList.add( t );
+		
+	}
+	
+}
 

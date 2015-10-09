@@ -34,4 +34,3 @@ After editing the new config file we can run the component:
 ```MyFirstComp ```
 
     --Ice.Config=config
-# robotica2015
