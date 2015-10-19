@@ -51,7 +51,10 @@ public slots:
 
 private:
 	
+	void search();
+	void orientation();
 	void navegar();
+	void vagabundear();
 	
 	struct TagsList
 	{
@@ -65,6 +68,7 @@ private:
 			float rx;
 			float ry;
 			float rz;
+			QTime timem;
 		} Tag;
 		
 		QMap<int, Tag> map;
@@ -75,20 +79,55 @@ private:
 			QMutexLocker ml(&mutex);
 			Tag tag;
 			tag.id = t.id;
+			
+			tag.tx=t.tx;
+			tag.ty=t.ty;
+			tag.tz=t.tz;
+			tag.rx=t.rx;
+			tag.ry=t.ry;
+			tag.rz=t.rz;
+			tag.timem=QTime::currentTime ();
 			map.insert(t.id, tag);
 			
 		}
 		bool exists(int id)
 		{
 			QMutexLocker ml(&mutex);
+			limpiar();
 			return map.contains(id);
 		}
 		
+		float distanceMark(int mark){
+			QMutexLocker ml(&mutex);
+			limpiar();
+			if(map.contains(mark)){
+				Tag tag = map.value(mark);
+				return sqrt(pow(tag.tx,2)+pow(tag.tz,2));
+			}
+			return -1;
+		}
+		Tag get(int mark){
+			QMutexLocker ml(&mutex);
+			limpiar();
+			return map.value(mark);
+		}
+		void limpiar(){
+			for(int i=0;i<4;i++){
+				if(map.contains(i)){
+					QTime timeb=QTime::currentTime();
+					if((timeb.msec()-map.value(i).timem.msec())>150){
+						map.remove(i);
+						std::cout << "marca "<< i<<" desactualizada." << std::endl;
+					}
+				}
+			}
+		}
 	};
 	
 	TagsList tList; 
+	int marca;
 	
-	enum class State {INIT, SEARCH, ADVANCE, FINISH};
+	enum class State {INIT, SEARCH, ORIENTATION, ADVANCE, FINISH};
 	State state = State::INIT;
 	RoboCompLaser::TLaserData ldata;
 	
