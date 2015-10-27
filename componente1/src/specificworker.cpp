@@ -24,7 +24,8 @@
 */
 SpecificWorker::SpecificWorker(MapPrx& mprx) : GenericWorker(mprx)
 {
-
+	tList.inner = new InnerModel("/home/salabeta/robocomp/files/innermodel/simpleworld.xml");
+	tList.marca=0;
 }
 
 /**
@@ -41,7 +42,7 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 
 
 	
-	timer.start(Period);
+	timer.start(500);
 
 	return true;
 }
@@ -50,12 +51,15 @@ void SpecificWorker::compute()
 {
 
 	ldata = laser_proxy->getLaserData();
+	TBaseState tbase;
+	differentialrobot_proxy->getBaseState(tbase);
+	tList.inner->updateTransformValues("base",tbase.x,0,tbase.z,0,tbase.alpha,0);
 	
 	switch(state)
 	{
 		case State::INIT:
 			//cambiar cuando se pulse el botón desde la UI
-			marca=0;
+			tList.marca=0;
 			state = State::SEARCH;
 			break;
 		
@@ -68,11 +72,12 @@ void SpecificWorker::compute()
 			break;
 		
 		case State::ADVANCE:
-			if(tList.exists( marca)){
+			if(tList.exists( tList.marca)){
 				navegar();
 			}
 			else{
 				state = State::SEARCH;
+				//tirar de memoria
 			}
 			break;
 			
@@ -87,13 +92,17 @@ void SpecificWorker::compute()
 
 void SpecificWorker::orientation()
 {
-	if((tList.get(marca).tx<=5) && (tList.get(marca).tx>=-5)){
+	float i;
+	i=tList.distanceMark()-tList.get(tList.marca).tz;
+	
+	if((i<=5) && (i>=-5)){
 		std::cout << "avanzo" << std::endl; 
-			usleep(500000);
+			differentialrobot_proxy->setSpeedBase(0, 0);
+			//usleep(500000);
 			state = State::ADVANCE;
 	}
 	else
-		if(tList.get(marca).tx<0){
+		if(tList.get(tList.marca).tx<0){
 				differentialrobot_proxy->setSpeedBase(5, (-1.5707/12));
 				usleep(100000);
 				differentialrobot_proxy->setSpeedBase(0, 0);
@@ -107,12 +116,17 @@ void SpecificWorker::orientation()
 }
 void SpecificWorker::search()
 {
-			if(tList.exists( marca)){
+			if(tList.exists( tList.marca))
+			{
+				
+				//TagsList::Tag t=tList.get(tList.marca);
+			//	tList.mem=tList.inner->transform("world",QVec::vec3(t.tx,0,t.tz),"rgbd");
 				state = State::ORIENTATION;
 			}
 			//if(tList.map.begin().Tag.id<marca)
 				differentialrobot_proxy->setSpeedBase(5, (1.5707/3));
-			//else
+				
+							//else
 			//	differentialrobot_proxy->setSpeedBase(5, (-1.5707/3));
 			//girar hasta tList.exists( currentTag );
 			//state = State::ADVANCE;
@@ -133,9 +147,11 @@ void SpecificWorker::navegar()
         RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();
         std::sort( ldata.begin()+35, ldata.begin()+65, [](RoboCompLaser::TData a, RoboCompLaser::TData b){ return     a.dist < b.dist; }) ;
 
+			std::cout<<"Marca actual"<<tList.marca<<std::endl;
+			std::cout << tList.distanceMark() << std::endl;
 		
-			//std::cout << tList.distanceMark(marca) << std::endl;
-	if(tList.distanceMark(marca)>(threshold+100)){
+	if(tList.distanceMark()>(threshold+200))
+	{ //si devuelve -1 no hacer
 		if( ldata[35].dist < (sqrt(pow(threshold,2)+pow(threshold,2))))
 		{
 			if(ldata.front().dist<=ldata[99].dist)
@@ -148,15 +164,15 @@ void SpecificWorker::navegar()
 				std::cout << "Derecha" << std::endl;
 			}
 			differentialrobot_proxy->setSpeedBase(5, rot1);
-			usleep(1250000);
+			usleep(1000000);
 			std::cout << ldata.front().dist << std::endl;
 			differentialrobot_proxy->setSpeedBase(0, 0);
-			usleep(1250000);
+			usleep(1000000);
 			differentialrobot_proxy->setSpeedBase(200, 0);
-			if(!tList.exists(marca)){
+			if(!tList.exists(tList.marca)){
 				state = State::SEARCH;
 			}
-			usleep(500000);
+			usleep(2000000);
     
 		}
 		else
@@ -167,14 +183,15 @@ void SpecificWorker::navegar()
 		}
 	}
 	else{
-			if(tList.distanceMark(marca)>0){
-				marca++;
-				if(marca==4)
+			//if(tList.distanceMark(tList.marca)>0){
+				tList.marca++;
+				std::cout<<"Marca actual"<<tList.marca;
+				if(tList.marca==4)
 					state = State::FINISH;
 				else
 					state = State::SEARCH;
 				differentialrobot_proxy->setSpeedBase(0, 0);
-			} 
+			//} 
 	}
     }
     catch(const Ice::Exception &ex)
@@ -198,7 +215,7 @@ void SpecificWorker::vagabundear()
         std::sort( ldata.begin()+35, ldata.begin()+65, [](RoboCompLaser::TData a, RoboCompLaser::TData b){ return     a.dist < b.dist; }) ;
 
     // tList.exists(marca);
-	if(tList.distanceMark(marca)>threshold){
+	if(tList.distanceMark()>threshold){
 		if( ldata[35].dist < (sqrt(pow(threshold,2)+pow(threshold,2))))
 		{
 			if(ldata.front().dist<=ldata[99].dist)
@@ -211,7 +228,7 @@ void SpecificWorker::vagabundear()
 				std::cout << "Derecha" << std::endl;
 			}
 			differentialrobot_proxy->setSpeedBase(5, rot1);
-			usleep(1250000);
+			usleep(1000000);
 			std::cout << ldata.front().dist << std::endl;   
 			differentialrobot_proxy->setSpeedBase(200, 0);
 			usleep(500000);
@@ -230,8 +247,8 @@ void SpecificWorker::vagabundear()
 		}
 	}
 	else{
-			marca++;
-			if(marca==4)
+			tList.marca++;
+			if(tList.marca==4)
 				state = State::FINISH;
 			else
 				state = State::SEARCH;
@@ -244,12 +261,21 @@ void SpecificWorker::vagabundear()
     }
 }
 
+
+/////////////////////////////////
+/////////////////////////////////////
+
 void SpecificWorker::newAprilTag(const tagsList& tags)
 {
 	for(auto t :tags)
 	{
-		qDebug()<<t.id;
-		tList.add( t );
+		//qDebug()<<t.id;
+		tList.add( t);
+		//if(tList.exists( tList.marca))
+		//{
+		//TagsList::Tag t=tList.get(tList.marca);
+				
+		//}
 		
 	}
 	
