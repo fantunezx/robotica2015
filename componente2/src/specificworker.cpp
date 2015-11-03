@@ -62,6 +62,8 @@ void SpecificWorker::compute()
 
 float SpecificWorker::go(const TargetPose &target)
 {
+	qDebug()<<"hola";
+	
 
 }
 

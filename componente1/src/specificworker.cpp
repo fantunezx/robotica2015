@@ -54,13 +54,16 @@ void SpecificWorker::compute()
 	TBaseState tbase;
 	differentialrobot_proxy->getBaseState(tbase);
 	tList.inner->updateTransformValues("base",tbase.x,0,tbase.z,0,tbase.alpha,0);
-	
+	TargetPose t;
+	qDebug() << "erghregas";
+	controller_proxy->go(t);
 	switch(state)
 	{
 		case State::INIT:
 			//cambiar cuando se pulse el botón desde la UI
 			tList.marca=0;
-			state = State::SEARCH;
+			
+			//state = State::SEARCH;
 			break;
 		
 		case State::SEARCH:
@@ -168,6 +171,7 @@ void SpecificWorker::navegar()
 			std::cout << ldata.front().dist << std::endl;
 			differentialrobot_proxy->setSpeedBase(0, 0);
 			usleep(1000000);
+			
 			differentialrobot_proxy->setSpeedBase(200, 0);
 			if(!tList.exists(tList.marca)){
 				state = State::SEARCH;

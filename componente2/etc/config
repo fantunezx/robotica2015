@@ -1,13 +1,14 @@
-CommonBehavior.Endpoints=tcp -p 1
+CommonBehavior.Endpoints=tcp -p 12000
+
 
 
 # Endpoints for implemented interfaces
-Controller.Endpoints=tcp -p 0
+Controller.Endpoints=tcp -p 12050
 
 
 # Proxies for required interfaces
-DifferentialRobotProxy = differentialrobot:tcp -h localhost -p 0
-LaserProxy = laser:tcp -h localhost -p 0
+DifferentialRobotProxy = differentialrobot:tcp -h localhost -p 10004
+LaserProxy = laser:tcp -h localhost -p 10003
 
 
 

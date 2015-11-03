@@ -34,6 +34,7 @@
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
 #include <AprilTags.h>
+#include <Controller.h>
 
 
 class SpecificWorker : public GenericWorker
