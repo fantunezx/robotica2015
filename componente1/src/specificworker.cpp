@@ -37,11 +37,7 @@ SpecificWorker::~SpecificWorker()
 }
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
-{
-
-
-
-	
+{	
 	timer.start(500);
 
 	return true;
@@ -52,18 +48,20 @@ void SpecificWorker::compute()
 
 	ldata = laser_proxy->getLaserData();
 	TBaseState tbase;
+	NavState estadocontrol;
 	differentialrobot_proxy->getBaseState(tbase);
 	tList.inner->updateTransformValues("base",tbase.x,0,tbase.z,0,tbase.alpha,0);
-	TargetPose t;
-	qDebug() << "erghregas";
-	controller_proxy->go(t);
+	TargetPose t=tList.gettag();
+	//qDebug() << "erghregas";
+	//std::cout << "target: " << t.x << ", "  << t.y<< ", " << t.z << ".\n " << std::endl;
+	//controller_proxy->go(t);
 	switch(state)
 	{
 		case State::INIT:
 			//cambiar cuando se pulse el botón desde la UI
 			tList.marca=0;
-			
-			//state = State::SEARCH;
+			//usleep(100000);
+			state = State::SEARCH;
 			break;
 		
 		case State::SEARCH:
@@ -84,8 +82,30 @@ void SpecificWorker::compute()
 			}
 			break;
 			
+		
+		case State::CONTROLLER:
+			estadocontrol=controller_proxy->getState();
+			if(estadocontrol.state == "IDLE")
+			{
+				std::cout << "target: " << t.x << ", "  << t.y<< ", " << t.z << ".\n " << std::endl;
+				controller_proxy->go(t);
+				espera=false;
+			}
+			if(estadocontrol.state=="FINISH"){
+				if(espera==false){
+					tList.marca++;
+					espera=true;
+					if(tList.marca==4)
+						state = State::FINISH;
+					else
+						state = State::SEARCH;
+					//controller_proxy->stop();
+				}
+			}
+			break;
 		case State::FINISH:
 			//navegar();
+			qDebug()<<"TERMINE";
 			break;
 		
 	}
@@ -121,18 +141,12 @@ void SpecificWorker::search()
 {
 			if(tList.exists( tList.marca))
 			{
-				
-				//TagsList::Tag t=tList.get(tList.marca);
-			//	tList.mem=tList.inner->transform("world",QVec::vec3(t.tx,0,t.tz),"rgbd");
-				state = State::ORIENTATION;
-			}
-			//if(tList.map.begin().Tag.id<marca)
+				controller_proxy->stop();
+				std::cout << "encontrado." << std::endl; 
+				state = State::CONTROLLER;
+			}else
 				differentialrobot_proxy->setSpeedBase(5, (1.5707/3));
-				
-							//else
-			//	differentialrobot_proxy->setSpeedBase(5, (-1.5707/3));
-			//girar hasta tList.exists( currentTag );
-			//state = State::ADVANCE;
+			
 	
 }
 

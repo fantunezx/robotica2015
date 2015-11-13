@@ -42,6 +42,7 @@ public:
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
 
+	
 	float go(const TargetPose &target);
 	NavState getState();
 	void stop();
@@ -51,6 +52,34 @@ public slots:
 
 private:
 	
+	void goal();
+	void freeway();
+	void newway();
+	void advance();
+	typedef struct{
+		bool sub;
+		bool newtarget;
+		TargetPose target;
+		TargetPose subtarget;
+	}Coordenadas;
+	
+	enum class State {IDLE, INIT, GOAL, FREEWAY, NEWWAY, ADVANCE, FINISH};
+	State state = State::IDLE;
+	RoboCompLaser::TLaserData ldata;
+	NavState estado;
+	Coordenadas coor;
+	InnerModel *inner;
+	float modulo;
+	QVec mem;	
+	TargetPose t;
+	bool encontrado = false;
+	bool encontradode = false;
+	bool encontradoiz = false;
+	int contador;
+	int punto;
+	float angulo, distancia;
+	QGraphicsScene scene;
+	void histogram();
 };
 
 #endif

@@ -11,6 +11,6 @@ Component componente2
 		
 	};
 	language Cpp;
-	//gui Qt(QWidget);
+	gui Qt(QWidget);
 };
 

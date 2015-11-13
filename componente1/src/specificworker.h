@@ -136,10 +136,33 @@ private:
 				Tag t;
 				t.id=0;
 				t.tx=v3.x();
-				t.ty=0;
-				t.tx=v3.z();
+				t.ty=v3.y();
+				t.tz=v3.z();
 				return t;
 			}
+			
+		};
+		TargetPose gettag() 
+		{
+			TargetPose t;
+			QMutexLocker ml(&mutex);
+			/*if(exists(marca))
+			{
+				QMutexLocker ml(&mutex);
+				Tag t1 = map.value(marca);
+				t.x=t1.tx;
+				t.y=t1.ty;
+				t.z=t1.tz;
+				return t;
+			}
+			else
+			{			*/
+				//QVec v3 = inner->transform("rgbd",mem,"world");
+				t.x=mem.x();
+				t.y=mem.y();
+				t.z=mem.z();
+				return t;
+			//}
 			
 		};
 		void limpiar()
@@ -159,9 +182,10 @@ private:
 	TagsList tList; 
 	
 
-	enum class State {INIT, SEARCH, ORIENTATION, ADVANCE, FINISH};
+	enum class State {INIT, SEARCH, ORIENTATION, ADVANCE,CONTROLLER, FINISH, IDLE};
 	State state = State::INIT;
 	RoboCompLaser::TLaserData ldata;
+	bool espera=false;
 	
 };
 
