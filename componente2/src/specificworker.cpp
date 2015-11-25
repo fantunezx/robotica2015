@@ -202,12 +202,13 @@ void SpecificWorker::goal(){
 		}
 	}
 	else{
+			state = State::FREEWAY;/*
 		if(coor.sub==true){
 			state = State::ADVANCE;
 		}
 		else{
 			state = State::FREEWAY;
-		}
+		}*/
 		
 	}
 }
@@ -217,8 +218,9 @@ void SpecificWorker::freeway(){
 	contador=0;
 	punto=0;
 	encontrado=false;
-	mem=inner->transform("base",QVec::vec3(coor.target.x,coor.target.y,coor.target.z),"world");
+	mem=inner->transform("base",QVec::vec3(coor.target.x,coor.target.y,coor.target.z),"world");//Q
 	rot=atan2(mem.x(),mem.z());
+	bool b= calcularCamino(mem);
 	while(!encontrado){
 		if(rot>ldata[contador].angle){
 			encontrado=true;
@@ -231,13 +233,61 @@ void SpecificWorker::freeway(){
 	{			
 		qDebug()<<"avanza";
 		state = State::ADVANCE;
+		coor.sub=false;
 	}else
 	{
 		qDebug()<<"subobjetivo";
 		state = State::NEWWAY;
 	}
 }
-
+ bool SpecificWorker::calcularCamino(QVec v){
+	 float x, z;
+	 float nx, nz, tx, tz;
+	 float modulo, modulon, modulot;
+	 bool terminar, terminarIzquierda; 
+	for(float i=0.1; i<=1; i+0.1){
+		x= v.x()*i;
+		z= v.z()*i;
+		modulo = sqrt(pow(x,2)+pow(z,2));
+		nx=(z/modulo)*200;
+		nz=(x/modulo)*200;
+		terminar=false;
+		int j=49;
+		modulon = sqrt(pow(nx,2)+pow(nz,2));
+		while(!terminar){
+			
+			tx=(ldata[j].dist*sin(ldata[j].angle))*i;
+			tz=(ldata[j].dist*cos(ldata[j].angle))*i;
+			modulot = sqrt(pow(tx,2)+pow(tz,2));
+			if(nx==tx && nz==tz){
+				terminar=true;
+				if(modulot<modulon){				
+					return false;
+				}
+			}
+			j++;
+		}		
+		nx=((z/modulo)*200)*(-1);
+		nz=(x/modulo)*200;
+		terminarIzquierda=false;
+		j=49;
+		modulon = sqrt(pow(nx,2)+pow(nz,2));
+		while(!terminarIzquierda){
+			
+			tx=(ldata[j].dist*sin(ldata[j].angle))*i;
+			tz=(ldata[j].dist*cos(ldata[j].angle))*i;
+			modulot = sqrt(pow(tx,2)+pow(tz,2));
+			if(nx==tx && nz==tz){
+				terminarIzquierda=true;
+				if(modulot<modulon){				
+					return false;
+				}
+			}
+			j--;
+		}		
+	}	
+	return true;
+}
 void SpecificWorker::newway(){
 	encontradode = false;
 	encontradoiz = false;
@@ -246,6 +296,7 @@ void SpecificWorker::newway(){
 	const float R = 550; //Robot radius
 	float x,z;
 	int i,j;
+	if(!coor.sub){
 	for(i=ldata.size()/2; i>0; i--)
 	{
 		if( (ldata[i].dist - ldata[i-1].dist) < -R )
@@ -297,14 +348,15 @@ void SpecificWorker::newway(){
 			punto=j;
 		}
 	}
-	x=(ldata[punto].dist/2)*sin(ldata[punto].angle);
-	z=(ldata[punto].dist/2)*cos(ldata[punto].angle);
+	x=((ldata[punto].dist/3)*2)*sin(ldata[punto].angle);
+	z=((ldata[punto].dist/3)*2)*cos(ldata[punto].angle);
 	mem=inner->transform("world",QVec::vec3(x,0,z),"base");
 	coor.subtarget.x=mem.x();
 	coor.subtarget.y=mem.y();
 	coor.subtarget.z=mem.z();
 	std::cout << "target: " << coor.subtarget.x << ", "  << coor.subtarget.y<< ", " << coor.subtarget.z << ".\n " << std::endl;
 	coor.sub = true;
+	}
 	state = State::ADVANCE;
 }
 
@@ -312,13 +364,13 @@ void SpecificWorker::newway(){
 void SpecificWorker::advance(){
 	float k= 0.7;
 	if(coor.sub){
-				mem=inner->transform("base",QVec::vec3(coor.subtarget.x,coor.subtarget.y,coor.subtarget.z),"world");
+		mem=inner->transform("base",QVec::vec3(coor.subtarget.x,coor.subtarget.y,coor.subtarget.z),"world");
 	}
 	else{
-				mem=inner->transform("base",QVec::vec3(coor.target.x,coor.target.y,coor.target.z),"world");
+		mem=inner->transform("base",QVec::vec3(coor.target.x,coor.target.y,coor.target.z),"world");
 	}
 	angulo=atan2(mem.x(),mem.z());
-	distancia=fmodf((mem.norm2()*k),float(300));
+	//distancia=fmodf((mem.norm2()*k),float(300));
 	differentialrobot_proxy->setSpeedBase(200, angulo); 
 	usleep(500000);
 	state = State::GOAL;

@@ -56,6 +56,7 @@ private:
 	void freeway();
 	void newway();
 	void advance();
+	bool calcularCamino(QVec mem);
 	typedef struct{
 		bool sub;
 		bool newtarget;
