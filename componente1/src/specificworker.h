@@ -56,6 +56,7 @@ private:
 	void orientation();
 	void navegar();
 	void vagabundear();
+	void reubicarse();
 	
 	struct TagsList
 	{
@@ -182,11 +183,11 @@ private:
 	TagsList tList; 
 	
 
-	enum class State {INIT, SEARCH, ORIENTATION, ADVANCE,CONTROLLER, FINISH, IDLE};
+	enum class State {INIT, SEARCH, ORIENTATION, ADVANCE,CONTROLLER, FINISH};
 	State state = State::INIT;
 	RoboCompLaser::TLaserData ldata;
 	bool espera=false;
-	
+	InnerModelTransform *Apriltag_id,*rgbd_id,*base_id;
 };
 
 #endif
