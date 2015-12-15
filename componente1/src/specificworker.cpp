@@ -26,9 +26,6 @@ SpecificWorker::SpecificWorker(MapPrx& mprx) : GenericWorker(mprx)
 {
 	tList.inner = new InnerModel("/home/salabeta/robocomp/files/innermodel/simpleworld.xml");
 	tList.marca=0;
-	Apriltag_id= tList.inner->newTransform ("April_id", "static", tList.inner->getNode("rgbd"), 0, 0, 0, 0, 0, 0,0);
-	//base_id= tList.inner->newTransform ("base_id", "static", inner->getNode("world"), 0, 0, 0, 0, 0, 0,0);
-	//rgbd_id= tList.inner->newTransform ("rgbd_id", "static", inner->getNode("base_id"), 0, 0, 0, 0, 0, 0,0);
 }
 
 /**
@@ -284,27 +281,21 @@ void SpecificWorker::vagabundear()
 
 void SpecificWorker::reubicarse(){
   
-  RTMat camara_april, april_camara,camara_base,base_world;
   QVec t,ti,tib;
   QVec tag;
   
-  //Apriltag_id= tList.inner->newTransform ("April_id", "static", inner->getNode("rgbd"), 0, 0, 0, 0, 0, 0,0);
-  
-  
-  camara_april=tList.inner->getTransformationMatrix("April_id","rgbd");
-  camara_april.invert();
-  //QVec datosCA=camara_april.getTr();
   tag=QVec::vec3(tList.get(tList.marca).tx,tList.get(tList.marca).ty,tList.get(tList.marca).tz);
+  Apriltag_id= tList.inner->newTransform ("April_id", "static", tList.inner->getNode("rgbd"), 0, 0, 0, 0, 0, 0,0);
   tList.inner->updateTransformValues("April_id",tList.get(tList.marca).tx, tList.get(tList.marca).ty, tList.get(tList.marca).tz, tList.get(tList.marca).rx, tList.get(tList.marca).ry, tList.get(tList.marca).rz,"rgbd");
  
-  t = tList.inner->transform("rgbd","April_id");
+  //t = tList.inner->transform("rgbd","April_id");
   
   ti = tList.inner->transform("April_id",QVec::zeros(6),"rgbd");
   tib= tList.inner->transform("base", QVec::zeros(6),"rgbd");
   
-  std::cout << "tag: " << tag.x() << ", "  << tag.y()<< ", " << tag.z() << ".\n " << std::endl;
+  /*std::cout << "tag: " << tag.x() << ", "  << tag.y()<< ", " << tag.z() << ".\n " << std::endl;
   std::cout << "tag id: " << t.x() << ", "  << t.y()<< ", " << t.z() << ".\n " << std::endl;
-  ti.print("inversa");
+  ti.print("inversa");*/
 
   switch(tList.marca){
     case 0:
@@ -322,6 +313,23 @@ void SpecificWorker::reubicarse(){
   }
   base_id= tList.inner->newTransform ("base_id", "static", tList.inner->getNode("rgbd_id"), tib.x(), tib.y(), tib.z(), tib.rx(), tib.ry(), tib.rz(),0);
   QVec tib2= tList.inner->transform("base", QVec::zeros(6),"base_id");
+  QVec valores = tList.inner->transform("world",QVec::zeros(6),"base_id");
+  
+  //tList.inner->updateTransformValues("base",valores.x(),valores.y(),valores.z(),valores.rx(),valores.ry(),valores.rz());
+  
+  QVec tbase= tList.inner->transform("world", QVec::zeros(6),"base");
+  QVec tbase_id= tList.inner->transform("world", QVec::zeros(6),"base_id");
+  tbase.print("tbase");
+  tbase_id.print("tbase_id");
+  QVec mem = tList.inner->transform("world",QVec::vec3(tList.get(tList.marca).tx,tList.get(tList.marca).ty,tList.get(tList.marca).tz),"rgbd");
+  QVec mbase= tList.inner->transform("base",mem,"world");
+  QVec mbase_id= tList.inner->transform("base_id",mem,"world");
+  mbase.print("mbase");
+  mbase_id.print("mbase_id");
+  
+  tList.inner->removeNode("April_id");
+  tList.inner->removeNode("rgbd_id");
+  tList.inner->removeNode("base_id");
 
   //*/
   qFatal("fary");
