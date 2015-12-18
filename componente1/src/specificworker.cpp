@@ -55,60 +55,60 @@ void SpecificWorker::compute()
 	//qDebug() << "erghregas";
 	//std::cout << "target: " << t.x << ", "  << t.y<< ", " << t.z << ".\n " << std::endl;
 	//controller_proxy->go(t);
-	switch(state)
-	{
-		case State::INIT:
-			//cambiar cuando se pulse el botón desde la UI
-			tList.marca=0;
-			//usleep(100000);
-			state = State::SEARCH;
-			break;
-		
-		case State::SEARCH:
-			search();
-			break;
-		
-		case State::ORIENTATION:
-			orientation();
-			break;
-		
-		case State::ADVANCE:
-			if(tList.exists( tList.marca)){
-				navegar();
-			}
-			else{
-				state = State::SEARCH;
-				//tirar de memoria
-			}
-			break;
-			
-		
-		case State::CONTROLLER:
-			estadocontrol=controller_proxy->getState();
-			if(estadocontrol.state == "IDLE")
-			{
-				std::cout << "target: " << t.x << ", "  << t.y<< ", " << t.z << ".\n " << std::endl;
-				controller_proxy->go(t);
-				espera=false;
-			}
-			if(estadocontrol.state=="FINISH"){
-				if(espera==false){
-					tList.marca++;
-					espera=true;
-					if(tList.marca==4)
-						state = State::FINISH;
-					else
-						state = State::SEARCH;
-					//controller_proxy->stop();
-				}
-			}
-			break;
-		case State::FINISH:
-			//navegar();
-			qDebug()<<"TERMINE";
-			break;
-		
-	}
+// 	switch(state)
+// 	{
+// 		case State::INIT:
+// 			//cambiar cuando se pulse el botón desde la UI
+// 			tList.marca=0;
+// 			//usleep(100000);
+// 			state = State::SEARCH;
+// 			break;
+// 		
+// 		case State::SEARCH:
+// 			search();
+// 			break;
+// 		
+// 		case State::ORIENTATION:
+// 			orientation();
+// 			break;
+// 		
+// 		case State::ADVANCE:
+// 			if(tList.exists( tList.marca)){
+// 				navegar();
+// 			}
+// 			else{
+// 				state = State::SEARCH;
+// 				//tirar de memoria
+// 			}
+// 			break;
+// 			
+// 		
+// 		case State::CONTROLLER:
+// 			estadocontrol=controller_proxy->getState();
+// 			if(estadocontrol.state == "IDLE")
+// 			{
+// 				std::cout << "target: " << t.x << ", "  << t.y<< ", " << t.z << ".\n " << std::endl;
+// 				controller_proxy->go(t);
+// 				espera=false;
+// 			}
+// 			if(estadocontrol.state=="FINISH"){
+// 				if(espera==false){
+// 					tList.marca++;
+// 					espera=true;
+// 					if(tList.marca==4)
+// 						state = State::FINISH;
+// 					else
+// 						state = State::SEARCH;
+// 					//controller_proxy->stop();
+// 				}
+// 			}
+// 			break;
+// 		case State::FINISH:
+// 			//navegar();
+// 			qDebug()<<"TERMINE";
+// 			break;
+// 		
+// 	}
 	
 	
 }
@@ -281,58 +281,51 @@ void SpecificWorker::vagabundear()
 
 void SpecificWorker::reubicarse(){
   
-  QVec t,ti,tib;
-  QVec tag;
-  
-  tag=QVec::vec3(tList.get(tList.marca).tx,tList.get(tList.marca).ty,tList.get(tList.marca).tz);
-  Apriltag_id= tList.inner->newTransform ("April_id", "static", tList.inner->getNode("rgbd"), 0, 0, 0, 0, 0, 0,0);
-  tList.inner->updateTransformValues("April_id",tList.get(tList.marca).tx, tList.get(tList.marca).ty, tList.get(tList.marca).tz, tList.get(tList.marca).rx, tList.get(tList.marca).ry, tList.get(tList.marca).rz,"rgbd");
- 
-  //t = tList.inner->transform("rgbd","April_id");
-  
-  ti = tList.inner->transform("April_id",QVec::zeros(6),"rgbd");
-  tib= tList.inner->transform("base", QVec::zeros(6),"rgbd");
-  
-  /*std::cout << "tag: " << tag.x() << ", "  << tag.y()<< ", " << tag.z() << ".\n " << std::endl;
-  std::cout << "tag id: " << t.x() << ", "  << t.y()<< ", " << t.z() << ".\n " << std::endl;
-  ti.print("inversa");*/
+  QVec t,ti,tib,tag,mem,valores,tbase;
 
+  Apriltag_id= tList.inner->newTransform ("April_id", "static", tList.inner->getNode("rgbd"), 0, 0, 0, 0, 0, 0,0);
+  
   switch(tList.marca){
     case 0:
+      mem =tList.inner->transform6D("rgbd","target00"); 
+      tList.inner->updateTransformValues("April_id",mem.x(),mem.y(),mem.z(),mem.rx(),mem.ry(),mem.rz(),"rgbd");
+      ti = tList.inner->transform("April_id",QVec::zeros(6),"rgbd");
       rgbd_id= tList.inner->newTransform ("rgbd_id", "static", tList.inner->getNode("target00"), ti.x(), ti.y(), ti.z(), ti.rx(), ti.ry(), ti.rz(),0);
       break;
     case 1:
+      mem =tList.inner->transform6D("rgbd","target01"); 
+      tList.inner->updateTransformValues("April_id",mem.x(),mem.y(),mem.z(),mem.rx(),mem.ry(),mem.rz(),"rgbd");
+      ti = tList.inner->transform("April_id",QVec::zeros(6),"rgbd");
       rgbd_id= tList.inner->newTransform ("rgbd_id", "static", tList.inner->getNode("target01"), ti.x(), ti.y(), ti.z(), ti.rx(), ti.ry(), ti.rz(),0);
       break;
     case 2:
+      mem =tList.inner->transform6D("rgbd","target02"); 
+      tList.inner->updateTransformValues("April_id",mem.x(),mem.y(),mem.z(),mem.rx(),mem.ry(),mem.rz(),"rgbd");
+      ti = tList.inner->transform("April_id",QVec::zeros(6),"rgbd");
       rgbd_id= tList.inner->newTransform ("rgbd_id", "static", tList.inner->getNode("target02"), ti.x(), ti.y(), ti.z(), ti.rx(), ti.ry(), ti.rz(),0);
       break;
     case 3:
+      mem =tList.inner->transform6D("rgbd","target03"); 
+      tList.inner->updateTransformValues("April_id",mem.x(),mem.y(),mem.z(),mem.rx(),mem.ry(),mem.rz(),"rgbd");
+      ti = tList.inner->transform("April_id",QVec::zeros(6),"rgbd");
       rgbd_id= tList.inner->newTransform ("rgbd_id", "static", tList.inner->getNode("target03"), ti.x(), ti.y(), ti.z(), ti.rx(), ti.ry(), ti.rz(),0);
       break;
   }
+  
+  tib= tList.inner->transform("base", QVec::zeros(6),"rgbd");
   base_id= tList.inner->newTransform ("base_id", "static", tList.inner->getNode("rgbd_id"), tib.x(), tib.y(), tib.z(), tib.rx(), tib.ry(), tib.rz(),0);
-  QVec tib2= tList.inner->transform("base", QVec::zeros(6),"base_id");
-  QVec valores = tList.inner->transform("world",QVec::zeros(6),"base_id");
-  
-  //tList.inner->updateTransformValues("base",valores.x(),valores.y(),valores.z(),valores.rx(),valores.ry(),valores.rz());
-  
-  QVec tbase= tList.inner->transform("world", QVec::zeros(6),"base");
-  QVec tbase_id= tList.inner->transform("world", QVec::zeros(6),"base_id");
+  valores = tList.inner->transform("world",QVec::zeros(6),"base_id");
+  valores.print("valores");
+  tList.inner->updateTransformValues("base",valores.x(),valores.y(),valores.z(),valores.rx(),valores.ry(),valores.rz());
+  tbase= tList.inner->transform("world", QVec::zeros(6),"base");
   tbase.print("tbase");
-  tbase_id.print("tbase_id");
-  QVec mem = tList.inner->transform("world",QVec::vec3(tList.get(tList.marca).tx,tList.get(tList.marca).ty,tList.get(tList.marca).tz),"rgbd");
-  QVec mbase= tList.inner->transform("base",mem,"world");
-  QVec mbase_id= tList.inner->transform("base_id",mem,"world");
-  mbase.print("mbase");
-  mbase_id.print("mbase_id");
   
   tList.inner->removeNode("April_id");
   tList.inner->removeNode("rgbd_id");
   tList.inner->removeNode("base_id");
 
   //*/
-  qFatal("fary");
+  //qFatal("fary");
 }
 
 /////////////////////////////////
